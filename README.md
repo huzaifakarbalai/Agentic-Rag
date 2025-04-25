@@ -14,7 +14,7 @@ A modular Retrieval-Augmented Generation (RAG) system that combines local docume
 
 ## System Workflow
 
-![RAG System Workflow](workflow.png)
+![image](https://github.com/user-attachments/assets/aa336be8-0382-4d0d-9862-a5033a0ae94a)
 
 The system follows a sophisticated decision-making process:
 
