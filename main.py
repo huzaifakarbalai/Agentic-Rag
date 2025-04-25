@@ -14,7 +14,7 @@ load_dotenv()
 # Initialize API keys
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
-GEMINI=os.getenv("GOOGLE_API_KEY")
+GEMINI = os.getenv("GOOGLE_API_KEY")
 
 # Initialize LLM
 llm = ChatGroq(
@@ -26,15 +26,13 @@ llm = ChatGroq(
 )
 
 crew_llm = LLM(
-    model="gemini/gemini-1.5-flash",
-    api_key=GEMINI,
-    max_tokens=500,
-    temperature=0.7
+    model="gemini/gemini-1.5-flash", api_key=GEMINI, max_tokens=500, temperature=0.7
 )
+
 
 def check_local_knowledge(query, context):
     """Router function to determine if we can answer from local knowledge"""
-    prompt = '''Role: Question-Answering Assistant
+    prompt = """Role: Question-Answering Assistant
 Task: Determine whether the system can answer the user's question based on the provided text.
 Instructions:
     - Analyze the text and identify if it contains the necessary information to answer the user's question.
@@ -59,17 +57,18 @@ Examples:
     Input:
         User Question: {query}
         Text: {text}
-'''
-    
+"""
+
     formatted_prompt = prompt.format(text=context, query=query)
     response = llm.invoke(formatted_prompt)
     return response.content.strip().lower() == "yes"
+
 
 def setup_web_scraping_agent():
     """Setup the web scraping agent and related components"""
     search_tool = SerperDevTool()  # Tool for performing web searches
     scrape_website = ScrapeWebsiteTool()  # Tool for extracting data from websites
-    
+
     # Define the web search agent
     web_search_agent = Agent(
         role="Expert Web Search Agent",
@@ -77,9 +76,9 @@ def setup_web_scraping_agent():
         backstory="An expert in identifying valuable web sources for the user's needs",
         allow_delegation=False,
         verbose=True,
-        llm=crew_llm
+        llm=crew_llm,
     )
-    
+
     # Define the web scraping agent
     web_scraper_agent = Agent(
         role="Expert Web Scraper Agent",
@@ -87,9 +86,9 @@ def setup_web_scraping_agent():
         backstory="A highly skilled web scraper, capable of analyzing and summarizing website content accurately",
         allow_delegation=False,
         verbose=True,
-        llm=crew_llm
+        llm=crew_llm,
     )
-    
+
     # Define the web search task
     search_task = Task(
         description=(
@@ -104,7 +103,7 @@ def setup_web_scraping_agent():
         tools=[search_tool],
         agent=web_search_agent,
     )
-    
+
     # Define the web scraping task
     scraping_task = Task(
         description=(
@@ -119,7 +118,7 @@ def setup_web_scraping_agent():
         tools=[scrape_website],
         agent=web_scraper_agent,
     )
-    
+
     # Define the crew to manage agents and tasks
     crew = Crew(
         agents=[web_search_agent, web_scraper_agent],
@@ -136,30 +135,30 @@ def get_web_content(query):
     result = crew.kickoff(inputs={"topic": query})
     return result.raw
 
+
 def setup_vector_db(pdf_path):
     """Setup vector database from PDF"""
     # Load and chunk PDF
     loader = PyPDFLoader(pdf_path)
     documents = loader.load()
-    
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=50
-    )
+
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
     chunks = text_splitter.split_documents(documents)
-    
+
     # Create vector database
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-mpnet-base-v2"
     )
     vector_db = FAISS.from_documents(chunks, embeddings)
-    
+
     return vector_db
+
 
 def get_local_content(vector_db, query):
     """Get content from vector database"""
     docs = vector_db.similarity_search(query, k=5)
     return " ".join([doc.page_content for doc in docs])
+
 
 def generate_final_answer(context, query):
     """Generate final answer using LLM"""
@@ -174,14 +173,15 @@ def generate_final_answer(context, query):
     response = llm.invoke(messages)
     return response.content
 
+
 def process_query(query, vector_db, local_context):
     """Main function to process user query"""
     print(f"Processing query: {query}")
-    
+
     # Step 1: Check if we can answer from local knowledge
     can_answer_locally = check_local_knowledge(query, local_context)
     print(f"Can answer locally: {can_answer_locally}")
-    
+
     # Step 2: Get context either from local DB or web
     if can_answer_locally:
         context = get_local_content(vector_db, query)
@@ -189,22 +189,23 @@ def process_query(query, vector_db, local_context):
     else:
         context = get_web_content(query)
         print("Retrieved context from web scraping")
-    
+
     # Step 3: Generate final answer
     answer = generate_final_answer(context, query)
     return answer
 
+
 def main():
     # Setup
-    pdf_path = "genai-principles.pdf"  # Replace with your PDF path
-    
+    pdf_path = "data\genai-principles.pdf"  # Replace with your PDF path
+
     # Initialize vector database
     print("Setting up vector database...")
     vector_db = setup_vector_db(pdf_path)
-    
+
     # Get initial context from PDF for routing
     local_context = get_local_content(vector_db, "")
-    
+
     # Example usage
     # query = "What are Agentic RAG?"
     # query = "What are language models?"
@@ -215,6 +216,7 @@ def main():
     result = process_query(query, vector_db, local_context)
     print("\nFinal Answer:")
     print(result)
+
 
 if __name__ == "__main__":
     main()
