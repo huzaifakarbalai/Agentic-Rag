@@ -46,7 +46,6 @@ class RAGApplication:
         try:
             # Get initial context for routing
             local_context = self.vector_store.get_context(query)
-            print(f"Local context: {local_context}")
 
             # Check if we can answer from local knowledge
             can_answer_locally = self.llm_interface.check_local_knowledge(

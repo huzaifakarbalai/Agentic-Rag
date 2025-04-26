@@ -90,9 +90,7 @@ Question: {query}
 """
         try:
             formatted_prompt = prompt.format(text=context, query=query)
-            print(f"Formatted prompt: {formatted_prompt}")
             response = self.llm.invoke(formatted_prompt)
-            print(f"Response: {response}")
             return response.content.strip().lower() == "yes"
         except Exception as e:
             raise ValueError(ERROR_MESSAGES["llm_error"].format(error=str(e)))
