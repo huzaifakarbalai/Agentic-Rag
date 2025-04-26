@@ -51,34 +51,48 @@ class LLMInterface:
         Returns:
             Boolean indicating if local knowledge is sufficient
         """
-        prompt = f"""Role: Question-Answering Assistant
-Task: Determine whether the system can answer the user's question based on the provided text.
+        prompt = """Role: Knowledge Verification Assistant
+Task: Determine if the provided text contains sufficient information to answer the user's question.
+
 Instructions:
-    - Analyze the text and identify if it contains the necessary information to answer the user's question.
-    - Provide a clear and concise response indicating whether the system can answer the question or not.
-    - Your response should include only a single word. Nothing else, no other text, information, header/footer. 
+1. Carefully analyze both the user's question and the provided text
+2. Consider if the text contains:
+   - Direct answers to the question
+   - Sufficient context to infer a reliable answer
+   - Relevant facts that could be combined to form an answer
+3. Be strict in your evaluation - only answer "Yes" if you are confident the text contains enough information
+4. Answer with a single word only: "Yes" or "No"
 
-Output Format:
-    - Answer: Yes/No
-
-Study the below examples and based on that, respond to the last question. 
 Examples:
-    Input: 
-        Text: The capital of France is Paris.
-        User Question: What is the capital of France?
-    Expected Output:
-        Answer: Yes
-    Input: 
-        Text: The population of the United States is over 330 million.
-        User Question: What is the population of China?
-    Expected Output:
-        Answer: No
-    Input:
-        User Question: {query}
-        Text: {context}
+Input: 
+    Text: The capital of France is Paris, and it's known for the Eiffel Tower.
+    Question: What is the capital of France?
+Output: Yes
+
+Input: 
+    Text: The population of the United States is over 330 million.
+    Question: What is the population of China?
+Output: No
+
+Input: 
+    Text: The company was founded in 2010 and has offices in New York and London.
+    Question: When was the company founded?
+Output: Yes
+
+Input: 
+    Text: The company has offices in New York and London.
+    Question: What is the company's revenue?
+Output: No
+
+Now evaluate:
+Text: {text}
+Question: {query}
 """
         try:
-            response = self.llm.invoke(prompt)
+            formatted_prompt = prompt.format(text=context, query=query)
+            print(f"Formatted prompt: {formatted_prompt}")
+            response = self.llm.invoke(formatted_prompt)
+            print(f"Response: {response}")
             return response.content.strip().lower() == "yes"
         except Exception as e:
             raise ValueError(ERROR_MESSAGES["llm_error"].format(error=str(e)))

@@ -45,12 +45,15 @@ class RAGApplication:
         """
         try:
             # Get initial context for routing
-            local_context = self.vector_store.get_context("")
+            local_context = self.vector_store.get_context(query)
+            print(f"Local context: {local_context}")
 
             # Check if we can answer from local knowledge
             can_answer_locally = self.llm_interface.check_local_knowledge(
                 query, local_context
             )
+
+            print(f"Can answer locally: {can_answer_locally}")
 
             # Get context either from local DB or web
             if can_answer_locally:
@@ -67,26 +70,26 @@ class RAGApplication:
 
 
 def main():
-    # Example usage
+    # Initialize RAG application
     app = RAGApplication()
-    app.initialize("data\tesla_q3.pdf")
+    app.initialize("data/tesla_q3.pdf")
 
-    # Example queries
-    queries = [
-        "What are Agentic RAG?",
-        "What are language models?",
-        "How quickly did ChatGPT reach one million users compared to Instagram?",
-        "What role does the 'distributional hypothesis' play in Word2Vec?",
-        "Why does ChatGPT give varied answers for the same prompt?",
-    ]
+    print("RAG Application initialized. Enter queries (Ctrl+C to exit):")
 
-    for query in queries:
-        print(f"\nQuery: {query}")
+    while True:
         try:
+            # Get query from user input
+            query = input("\nEnter your query: ")
+
+            # Process query and print answer
             answer = app.process_query(query)
-            print(f"Answer: {answer}")
+            print(f"\nAnswer: {answer}")
+
+        except KeyboardInterrupt:
+            print("\nExiting application...")
+            break
         except Exception as e:
-            print(f"Error: {str(e)}")
+            print(f"\nError: {str(e)}")
 
 
 if __name__ == "__main__":
