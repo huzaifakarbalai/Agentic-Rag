@@ -197,7 +197,7 @@ def process_query(query, vector_db, local_context):
 
 def main():
     # Setup
-    pdf_path = "data\genai-principles.pdf"  # Replace with your PDF path
+    pdf_path = r"C:\Users\huzaifa.hashim_ventu\Desktop\Agentic RAG\data\tesla_q3.pdf"  # Replace with your PDF path
 
     # Initialize vector database
     print("Setting up vector database...")
@@ -209,7 +209,7 @@ def main():
     # Example usage
     # query = "What are Agentic RAG?"
     # query = "What are language models?"
-    query = "How quickly did ChatGPT reach one million users compared to Instagram?"
+    query = "Total automotive revenues Q3-2024"
     # query = "What role does the “distributional hypothesis” play in Word2Vec?"
     # query = "Why does ChatGPT give varied answers for the same prompt?"
     # query = "According to The Economist, how did the number of jobs mentioning AI-related skills change between 2022 and 2023?"

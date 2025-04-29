@@ -100,7 +100,7 @@ Question: {query}
         Generate an answer using the LLM.
 
         Args:
-            context: Context for the query
+            context: Context for the query (includes conversation history and retrieved information)
             query: User query
 
         Returns:
@@ -108,7 +108,10 @@ Question: {query}
         """
         messages = [
             SystemMessage(
-                content="You are a helpful assistant. Use the provided context to answer the query accurately."
+                content="""You are a helpful assistant. Use the provided context to answer the query accurately.
+                The context includes both previous conversation history and retrieved information.
+                Consider the conversation history when formulating your response to maintain context and coherence.
+                If the conversation history is empty, focus only on the retrieved information."""
             ),
             SystemMessage(content=f"Context: {context}"),
             HumanMessage(content=query),
