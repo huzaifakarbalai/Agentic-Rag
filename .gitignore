@@ -1,4 +1,3 @@
 agent_env
 .env
-data/
 __pycache__/
